@@ -3,6 +3,40 @@
 #include <random>
 #include <iostream>
 #include <string>
+#include "json.hpp"
+
+void initState(std::string &allWords) {
+    using namespace nlohmann;
+    std::ifstream ifstr("../settings.json");
+
+    json j;
+    ifstr >> j;
+
+    if (j["difficulty"] == 0) {
+        int newDifficulty = 0;
+        while(!(newDifficulty >= 1 && newDifficulty <= 3)) {
+            std::cout << "Set diff 1,2,3: ";
+            std::cin >> newDifficulty;
+        }
+        j["difficulty"] = newDifficulty;
+        std::ofstream ofstr("../settings.json", std::ios::trunc);
+        ofstr << j;
+    } 
+    if (j["difficulty"] != 0) {
+        int difficulty = j["difficulty"];
+        switch(difficulty) {
+            case 1:
+                allWords = "../all_words1.csv";
+            break;
+            case 2:
+                allWords = "../all_words2.csv";
+            break;
+            case 3:
+                allWords = "../all_words3.csv";
+            break;
+        }
+    }
+}
 
 // Get all lines from words db
 int getLinesCount(std::string pathToFile) {
@@ -33,39 +67,31 @@ int getRandLine(std::string pathToFile) {
 }
 
 // This function get random line from all_words.csv and then move it to learned words.
-/*
-Steps:
-1. Create temp
-2. Move all lines to temp file except line that user got
-3. Remove all_words.csv
-4. Rename temp -> all_words.csv
-*/
 
 void getRandWord(std::string pathToFile) {
-    std::fstream fstr(pathToFile, std::ios::in | std::ios::out);
+    std::ifstream allWords(pathToFile);
 
-    if (fstr.is_open()) {
+    if (allWords.is_open()) {
         // Get rand number of line
         int lineNumber = getRandLine(pathToFile);
         std::cout << "lineNumber:" << lineNumber << "\n";
 
         std::string line;
         int currentLine = 0;
-        
-        // Create temp of all_words.csv
-        std::ofstream ofstr("../temp.csv");
-        // Open learned_words.csv
-        std::ofstream ofstrLearned("../learned_words.csv", std::ios::app);
 
-        while (std::getline(fstr, line)) {
+        std::string buffer;        
+        // Open learned_words.csv
+        std::ofstream learnedWords("../learned_words.csv", std::ios::app);
+
+        while (std::getline(allWords, line)) {
             currentLine++;
             
             if (lineNumber != currentLine) {
                 // Add to temp all lines except line that user get
-                ofstr << line << "\n";
+                buffer += line += '\n';
             } else {
                 // Write to learned_words.csv word that user got
-                ofstrLearned << line << "\n";
+                learnedWords << line << "\n";
                 std::stringstream sstr(line);
 
                 std::string word, description;
@@ -75,13 +101,19 @@ void getRandWord(std::string pathToFile) {
                 std::cout << "word: "  << word << "\ndescr: " << description << "\n";
             }
         }
-        // Remove all words db
-        std::remove(pathToFile.c_str());
-        // Rename temp to all words
-        std::rename("../temp.csv", pathToFile.c_str());
+
+        std::ofstream ofstrAllWords(pathToFile, std::ios::trunc);
+        ofstrAllWords << buffer;
     }
 }
 
 int main() {
-    getRandWord("../all_words.csv");
+    std::string allWords;
+    initState(allWords);
+    
+    std::string input;
+    while(input.empty()) {
+        getline(std::cin, input);
+        getRandWord(allWords);
+    }
 }
