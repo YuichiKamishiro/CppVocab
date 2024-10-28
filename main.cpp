@@ -5,36 +5,50 @@
 #include <string>
 #include "json.hpp"
 
-void initState(std::string &allWords) {
+void matchFileName(int difficulty, std::string &pathToAllWords) {
+    switch (difficulty) {
+        case 1:
+            pathToAllWords = "../all_words1.csv";
+            break;
+        case 2:
+            pathToAllWords = "../all_words2.csv";
+            break;
+        case 3:
+            pathToAllWords = "../all_words3.csv";
+            break;
+    }
+}
+
+void initState(std::string pathToSettings, std::string &pathToWords) {
     using namespace nlohmann;
-    std::ifstream ifstr("../settings.json");
 
+    // Transfer all data from settings to json object
+    std::fstream fileSettings(pathToSettings, std::ios::in);
     json j;
-    ifstr >> j;
-
-    if (j["difficulty"] == 0) {
+    if (fileSettings.is_open()) {
+        fileSettings >> j;
+        fileSettings.close();
+    } else {
+        std::cerr << "Error opening " << pathToSettings << "\n";
+        exit(EXIT_FAILURE);
+    }
+    
+    if(j["difficulty"].is_null()) {
         int newDifficulty = 0;
-        while(!(newDifficulty >= 1 && newDifficulty <= 3)) {
-            std::cout << "Set diff 1,2,3: ";
+        while (!(newDifficulty >= 1 && newDifficulty <= 3)) {
+            std::cout << "Difficulty not set. Please select difficulty 1[easy], 2[medium], 3[hard]\n";
             std::cin >> newDifficulty;
         }
+
         j["difficulty"] = newDifficulty;
-        std::ofstream ofstr("../settings.json", std::ios::trunc);
-        ofstr << j;
-    } 
-    if (j["difficulty"] != 0) {
+        fileSettings.open(pathToSettings, std::ios::out | std::ios::trunc);
+        fileSettings << j.dump(4);
+        fileSettings.close();
+
+        matchFileName(newDifficulty, pathToWords);
+    } else {
         int difficulty = j["difficulty"];
-        switch(difficulty) {
-            case 1:
-                allWords = "../all_words1.csv";
-            break;
-            case 2:
-                allWords = "../all_words2.csv";
-            break;
-            case 3:
-                allWords = "../all_words3.csv";
-            break;
-        }
+        matchFileName(difficulty, pathToWords);
     }
 }
 
@@ -70,11 +84,13 @@ int getRandLine(std::string pathToFile) {
 
 void getRandWord(std::string pathToFile) {
     std::ifstream allWords(pathToFile);
+    if (allWords.peek() == std::ifstream::traits_type::eof()) {
+        std::cout << "No more words for you on this difficulty\n";
+    }
 
     if (allWords.is_open()) {
         // Get rand number of line
         int lineNumber = getRandLine(pathToFile);
-        std::cout << "lineNumber:" << lineNumber << "\n";
 
         std::string line;
         int currentLine = 0;
@@ -109,11 +125,43 @@ void getRandWord(std::string pathToFile) {
 
 int main() {
     std::string allWords;
-    initState(allWords);
+    initState("../settings.json", allWords);
     
     std::string input;
-    while(input.empty()) {
+
+    std::cout << "Hello message\n";
+    while(true) {
         getline(std::cin, input);
-        getRandWord(allWords);
+        std::stringstream ss(input);
+        std::string command;
+
+        if (input.empty()) {
+            getRandWord(allWords);
+        } else if (ss >> command; command == "/e") {
+            break;
+        } else if(command == "/c") {
+            int arg;
+            ss >> arg; 
+
+            std::ifstream ifstr("../settings.json");
+            nlohmann::json j;
+            if (ifstr.is_open()) {
+                std::cout << "Opened settings\n";
+                ifstr >> j;
+            } else {
+                std::cout << "Error while loading file\n";
+            }
+
+            if (arg >= 1 && arg <= 3) {
+                std::ofstream ofstr("../settings.json");
+                std::cout << "Log1\n";
+                j["difficulty"] = arg;
+                ofstr << j.dump(4);
+            } else {
+                std::cout << "No matching arguments. Try again!\n";
+            }
+        } else {
+            std::cout << "Try again.\n";
+        }
     }
 }
