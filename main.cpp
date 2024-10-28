@@ -5,31 +5,36 @@
 #include <string>
 #include "json.hpp"
 
-void matchFileName(int difficulty, std::string &pathToAllWords) {
+#define PATH_DB_1 "../db/words1.csv"
+#define PATH_DB_2 "../db/words2.csv"
+#define PATH_DB_3 "../db/words3.csv"
+#define PATH_SETTINGS "../settings/settings.json"
+
+void matchFileName(int difficulty, std::string &pathToDB) {
     switch (difficulty) {
         case 1:
-            pathToAllWords = "../all_words1.csv";
+            pathToDB = PATH_DB_1;
             break;
         case 2:
-            pathToAllWords = "../all_words2.csv";
+            pathToDB = PATH_DB_2;
             break;
         case 3:
-            pathToAllWords = "../all_words3.csv";
+            pathToDB = PATH_DB_3;
             break;
     }
 }
 
-void initState(std::string pathToSettings, std::string &pathToWords) {
+void setDifficulty(std::string &pathToDB) {
     using namespace nlohmann;
 
     // Transfer all data from settings to json object
-    std::fstream fileSettings(pathToSettings, std::ios::in);
+    std::fstream fileSettings(PATH_SETTINGS, std::ios::in);
     json j;
     if (fileSettings.is_open()) {
         fileSettings >> j;
         fileSettings.close();
     } else {
-        std::cerr << "Error opening " << pathToSettings << "\n";
+        std::cerr << "Error opening " << PATH_SETTINGS << "\n";
         exit(EXIT_FAILURE);
     }
     
@@ -41,14 +46,14 @@ void initState(std::string pathToSettings, std::string &pathToWords) {
         }
 
         j["difficulty"] = newDifficulty;
-        fileSettings.open(pathToSettings, std::ios::out | std::ios::trunc);
+        fileSettings.open(PATH_SETTINGS, std::ios::out | std::ios::trunc);
         fileSettings << j.dump(4);
         fileSettings.close();
 
-        matchFileName(newDifficulty, pathToWords);
+        matchFileName(newDifficulty, pathToDB);
     } else {
         int difficulty = j["difficulty"];
-        matchFileName(difficulty, pathToWords);
+        matchFileName(difficulty, pathToDB);
     }
 }
 
@@ -124,8 +129,8 @@ void getRandWord(std::string pathToFile) {
 }
 
 int main() {
-    std::string allWords;
-    initState("../settings.json", allWords);
+    std::string pathToDB;
+    setDifficulty(pathToDB);
     
     std::string input;
 
@@ -136,7 +141,7 @@ int main() {
         std::string command;
 
         if (input.empty()) {
-            getRandWord(allWords);
+            getRandWord(pathToDB);
         } else if (ss >> command; command == "/e") {
             break;
         } else if(command == "/c") {
