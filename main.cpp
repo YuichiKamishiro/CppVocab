@@ -11,6 +11,7 @@
 #define PATH_DB_LEARNED "../db/learned_words.csv"
 #define PATH_SETTINGS "../settings/settings.json"
 
+// Get difficulty level from json file
 int getDifficulty() {
     int difficulty = 0;
     std::ifstream ifstr(PATH_SETTINGS);
@@ -26,6 +27,7 @@ int getDifficulty() {
     return j["difficulty"];
 }
 
+// Match difficulty choose path to db
 std::string matchDifficulty() {
     switch(getDifficulty()) {
         case 1:
@@ -40,6 +42,7 @@ std::string matchDifficulty() {
     }
 }
 
+// Check if difficulty not selected
 void initDifficulty() {
     using namespace nlohmann;
     
@@ -88,7 +91,6 @@ int getRandLine(std::string pathToFile) {
 }
 
 // This function get random line from all_words.csv and then move it to learned words.
-
 void getRandWord() {
     std::string pathToCurrentDB = matchDifficulty();
 
@@ -115,7 +117,6 @@ void getRandWord() {
             } else {
                 // Write to learned_words.csv word that user got
                 learnedWords << line << "\n";
-                std::cout << "Line into learned words:" << line << "\n";
                 std::stringstream sstr(line);
 
                 std::string word, description;
@@ -152,17 +153,13 @@ int main() {
 
             std::ifstream ifstr(PATH_SETTINGS);
             nlohmann::json j;
-            if (ifstr.is_open()) {
-                ifstr >> j;
-            } else {
-                std::cout << "Error while loading file\n";
-            }
+            ifstr >> j;
 
             if (arg >= 1 && arg <= 3) {
                 std::ofstream ofstr(PATH_SETTINGS);
                 j["difficulty"] = arg;
                 ofstr << j.dump(4);
-                std::cout << "Difficulty change on " << arg << "\n";
+                std::cout << "Difficulty changed on " << arg << "\n";
             } else {
                 std::cout << "No matching arguments. Try again!\n";
             }
