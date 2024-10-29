@@ -8,52 +8,54 @@
 #define PATH_DB_1 "../db/words1.csv"
 #define PATH_DB_2 "../db/words2.csv"
 #define PATH_DB_3 "../db/words3.csv"
+#define PATH_DB_LEARNED "../db/learned_words.csv"
 #define PATH_SETTINGS "../settings/settings.json"
 
-void matchFileName(int difficulty, std::string &pathToDB) {
-    switch (difficulty) {
+int getDifficulty() {
+    int difficulty = 0;
+    std::ifstream ifstr(PATH_SETTINGS);
+
+    if (!ifstr.is_open()) {
+        std::cout << "Error while loading " << PATH_SETTINGS << "\n";
+        exit(EXIT_FAILURE);
+    }
+
+    nlohmann::json j;
+    ifstr >> j;
+
+    return j["difficulty"];
+}
+
+std::string matchDifficulty() {
+    switch(getDifficulty()) {
         case 1:
-            pathToDB = PATH_DB_1;
+            return PATH_DB_1;
             break;
         case 2:
-            pathToDB = PATH_DB_2;
+            return PATH_DB_2;
             break;
         case 3:
-            pathToDB = PATH_DB_3;
+            return PATH_DB_3;
             break;
     }
 }
 
-void setDifficulty(std::string &pathToDB) {
+void initDifficulty() {
     using namespace nlohmann;
-
-    // Transfer all data from settings to json object
-    std::fstream fileSettings(PATH_SETTINGS, std::ios::in);
-    json j;
-    if (fileSettings.is_open()) {
-        fileSettings >> j;
-        fileSettings.close();
-    } else {
-        std::cerr << "Error opening " << PATH_SETTINGS << "\n";
-        exit(EXIT_FAILURE);
-    }
     
-    if(j["difficulty"].is_null()) {
+    if(getDifficulty() == 0) {
         int newDifficulty = 0;
         while (!(newDifficulty >= 1 && newDifficulty <= 3)) {
             std::cout << "Difficulty not set. Please select difficulty 1[easy], 2[medium], 3[hard]\n";
             std::cin >> newDifficulty;
         }
 
-        j["difficulty"] = newDifficulty;
-        fileSettings.open(PATH_SETTINGS, std::ios::out | std::ios::trunc);
-        fileSettings << j.dump(4);
-        fileSettings.close();
+        json j;
+        std::fstream fileSettings(PATH_SETTINGS, std::ios::out | std::ios::in);
+        fileSettings >> j;
 
-        matchFileName(newDifficulty, pathToDB);
-    } else {
-        int difficulty = j["difficulty"];
-        matchFileName(difficulty, pathToDB);
+        j["difficulty"] = newDifficulty;
+        fileSettings << j.dump(4);
     }
 }
 
@@ -80,39 +82,40 @@ int getRandLine(std::string pathToFile) {
 
     std::mt19937 gen(rd());
 
-    std::uniform_int_distribution<> dis(0, getLinesCount(pathToFile));
+    std::uniform_int_distribution<> dis(0, getLinesCount(pathToFile) - 1);
 
     return dis(gen);
 }
 
 // This function get random line from all_words.csv and then move it to learned words.
 
-void getRandWord(std::string pathToFile) {
-    std::ifstream allWords(pathToFile);
+void getRandWord() {
+    std::string pathToCurrentDB = matchDifficulty();
+
+    std::ifstream allWords(pathToCurrentDB);
     if (allWords.peek() == std::ifstream::traits_type::eof()) {
         std::cout << "No more words for you on this difficulty\n";
+        return;
     }
 
     if (allWords.is_open()) {
         // Get rand number of line
-        int lineNumber = getRandLine(pathToFile);
-
+        int lineNumber = getRandLine(pathToCurrentDB);
         std::string line;
         int currentLine = 0;
 
         std::string buffer;        
         // Open learned_words.csv
-        std::ofstream learnedWords("../learned_words.csv", std::ios::app);
+        std::ofstream learnedWords("../db/learned_words.csv", std::ios::app);
 
         while (std::getline(allWords, line)) {
-            currentLine++;
-            
             if (lineNumber != currentLine) {
                 // Add to temp all lines except line that user get
                 buffer += line += '\n';
             } else {
                 // Write to learned_words.csv word that user got
                 learnedWords << line << "\n";
+                std::cout << "Line into learned words:" << line << "\n";
                 std::stringstream sstr(line);
 
                 std::string word, description;
@@ -121,47 +124,45 @@ void getRandWord(std::string pathToFile) {
 
                 std::cout << "word: "  << word << "\ndescr: " << description << "\n";
             }
+            currentLine++;
         }
-
-        std::ofstream ofstrAllWords(pathToFile, std::ios::trunc);
+        std::ofstream ofstrAllWords(pathToCurrentDB, std::ios::trunc);
         ofstrAllWords << buffer;
     }
 }
 
 int main() {
-    std::string pathToDB;
-    setDifficulty(pathToDB);
+    initDifficulty();
     
     std::string input;
-
     std::cout << "Hello message\n";
+
     while(true) {
         getline(std::cin, input);
         std::stringstream ss(input);
         std::string command;
 
         if (input.empty()) {
-            getRandWord(pathToDB);
-        } else if (ss >> command; command == "/e") {
+            getRandWord();
+        } else if (ss >> command; command == "/exit") {
             break;
         } else if(command == "/c") {
             int arg;
             ss >> arg; 
 
-            std::ifstream ifstr("../settings.json");
+            std::ifstream ifstr(PATH_SETTINGS);
             nlohmann::json j;
             if (ifstr.is_open()) {
-                std::cout << "Opened settings\n";
                 ifstr >> j;
             } else {
                 std::cout << "Error while loading file\n";
             }
 
             if (arg >= 1 && arg <= 3) {
-                std::ofstream ofstr("../settings.json");
-                std::cout << "Log1\n";
+                std::ofstream ofstr(PATH_SETTINGS);
                 j["difficulty"] = arg;
                 ofstr << j.dump(4);
+                std::cout << "Difficulty change on " << arg << "\n";
             } else {
                 std::cout << "No matching arguments. Try again!\n";
             }
