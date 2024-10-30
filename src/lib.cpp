@@ -1,15 +1,4 @@
-#include <sstream>
-#include <fstream>
-#include <random>
-#include <iostream>
-#include <string>
-#include <json.hpp>
-
-#define PATH_DB_1 "../db/words1.csv"
-#define PATH_DB_2 "../db/words2.csv"
-#define PATH_DB_3 "../db/words3.csv"
-#define PATH_DB_LEARNED "../db/learned_words.csv"
-#define PATH_SETTINGS "../settings/settings.json"
+#include <cppvocab.hpp>
 
 // Get difficulty level from json file
 int getDifficulty() {
@@ -73,7 +62,7 @@ int getLinesCount(std::string pathToFile) {
             linesCount++;
         }
     }
-    
+
     ifstr.close();
     return linesCount;
 }
@@ -105,7 +94,7 @@ void getRandWord() {
         std::string line;
         int currentLine = 0;
 
-        std::string buffer;        
+        std::string buffer;
         // Open learned_words.csv
         std::ofstream learnedWords("../db/learned_words.csv", std::ios::app);
 
@@ -128,42 +117,5 @@ void getRandWord() {
         }
         std::ofstream ofstrAllWords(pathToCurrentDB, std::ios::trunc);
         ofstrAllWords << buffer;
-    }
-}
-
-int main() {
-    initDifficulty();
-    
-    std::string input;
-    std::cout << "Hello message\n";
-
-    while(true) {
-        getline(std::cin, input);
-        std::stringstream ss(input);
-        std::string command;
-
-        if (input.empty()) {
-            getRandWord();
-        } else if (ss >> command; command == "/exit") {
-            break;
-        } else if(command == "/c") {
-            int arg;
-            ss >> arg; 
-
-            std::ifstream ifstr(PATH_SETTINGS);
-            nlohmann::json j;
-            ifstr >> j;
-
-            if (arg >= 1 && arg <= 3) {
-                std::ofstream ofstr(PATH_SETTINGS);
-                j["difficulty"] = arg;
-                ofstr << j.dump(4);
-                std::cout << "Difficulty changed on " << arg << "\n";
-            } else {
-                std::cout << "No matching arguments. Try again!\n";
-            }
-        } else {
-            std::cout << "Try again.\n";
-        }
     }
 }
