@@ -1,4 +1,4 @@
-#include <cppvocab.hpp>
+#include <myLib.hpp>
 
 int main() {
     initDifficulty();
