@@ -40,12 +40,11 @@ std::string matchDifficulty() {
             return PATH_DB_3;
             break;
     }
+    return "";
 }
 
 // Check if difficulty not selected
 void initDifficulty() {
-    using namespace nlohmann;
-    
     if(getDifficulty() == 0) {
         int newDifficulty = 0;
         while (!(newDifficulty >= 1 && newDifficulty <= 3)) {
@@ -53,7 +52,7 @@ void initDifficulty() {
             std::cin >> newDifficulty;
         }
 
-        json j;
+        nlohmann::json j;
         std::fstream fileSettings(PATH_SETTINGS, std::ios::out | std::ios::in);
         fileSettings >> j;
 
