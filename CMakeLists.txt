@@ -3,6 +3,6 @@ project(CppVocab)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(${CMAKE_PROJECT_NAME} src/lib.cpp src/main.cpp)
+add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE include/)
