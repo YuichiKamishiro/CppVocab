@@ -3,7 +3,7 @@
 #include <random>
 #include <iostream>
 #include <string>
-#include "json.hpp"
+#include <json.hpp>
 
 #define PATH_DB_1 "../db/words1.csv"
 #define PATH_DB_2 "../db/words2.csv"
