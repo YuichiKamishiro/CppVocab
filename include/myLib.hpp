@@ -15,7 +15,6 @@
 
 // Get difficulty level from json file
 int getDifficulty() {
-    int difficulty = 0;
     std::ifstream ifstr(PATH_SETTINGS);
 
     if (!ifstr.is_open()) {
@@ -56,6 +55,12 @@ void initDifficulty() {
 
         nlohmann::json j;
         std::fstream fileSettings(PATH_SETTINGS, std::ios::out | std::ios::in);
+        
+        if (!fileSettings.is_open()) {
+            std::cout << "Error while loading " << PATH_SETTINGS << "\n";
+            exit(EXIT_FAILURE);
+        }
+
         fileSettings >> j;
 
         j["difficulty"] = newDifficulty;
@@ -66,6 +71,10 @@ void initDifficulty() {
 // Get all lines from words db
 int getLinesCount(std::string pathToFile) {
     std::ifstream ifstr(pathToFile);
+    if (!ifstr.is_open()) {
+        std::cout << "Error while loading " << pathToFile << "\n";
+        exit(EXIT_FAILURE);
+    }
 
     std::string buf;
     int linesCount = 0;
@@ -130,6 +139,9 @@ void getRandWord() {
         }
         std::ofstream ofstrAllWords(pathToCurrentDB, std::ios::trunc);
         ofstrAllWords << buffer;
+    } else {
+        std::cout << "Error while loading " << pathToCurrentDB << "\n";
+        exit(EXIT_FAILURE);
     }
 }
 
