@@ -4,7 +4,10 @@ int main() {
     initDifficulty();
 
     std::string input;
-    std::cout << "Hello message\n";
+    std::cout << "CppVocabulary Usage:\n";
+    std::cout << "Commands:\n /c <1, 2 or 3> Change difficulty\n";
+    std::cout << " /exit Exit the program\n";
+    std::cout << " Press enter to learn next word\n";
 
     while(true) {
         getline(std::cin, input);
