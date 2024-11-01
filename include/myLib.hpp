@@ -55,14 +55,13 @@ void initDifficulty() {
 
         nlohmann::json j;
         std::fstream fileSettings(PATH_SETTINGS, std::ios::out | std::ios::in);
-        
         if (!fileSettings.is_open()) {
             std::cout << "Error while loading " << PATH_SETTINGS << "\n";
             exit(EXIT_FAILURE);
         }
 
         fileSettings >> j;
-
+        fileSettings.seekp(0);
         j["difficulty"] = newDifficulty;
         fileSettings << j.dump(4);
     }
