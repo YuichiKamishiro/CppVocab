@@ -1,0 +1,3 @@
+[submodule "CppVocabQt"]
+	path = CppVocabQt
+	url = https://github.com/YuichiKamishiro/CppVocabQt
